@@ -51,7 +51,10 @@ export function basics(term) {
 
 export function modes(term) {
   if (typeof term === "string") {
-    return console.log("Search within modes for:", term);
+    return console.log(`
+  Commands with "${term}" in Modes:
+
+    ${printLines(searchWithin(modesData, term))}`);
   }
 
   return console.log(`

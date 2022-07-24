@@ -1,6 +1,6 @@
 import chalk from "chalk";
 
-export function line(keys, description) {
+function line(keys, description) {
   return `${chalk.bgGray(` ${keys} `)} ${description}`;
 }
 

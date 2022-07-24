@@ -1,22 +1,4 @@
-import chalk from "chalk";
-
-function line(keys, description) {
-  return `${chalk.bgGray(` ${keys} `)} ${description}`;
-}
-
-function printLines(data) {
-  return Object.entries(data)
-    .map(([key, value]) => line(key, value))
-    .join(`\n    `);
-}
-
-function searchWithin(data, term) {
-  return Object.fromEntries(
-    Object.entries(data).filter(
-      ([key, value]) => key.includes(term) || value.includes(term)
-    )
-  );
-}
+import { printLines, searchWithin } from "./helpers.js";
 
 const basicData = {
   ":w": "write / save",

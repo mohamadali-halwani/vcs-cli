@@ -1,0 +1,16 @@
+{
+  "name": "vim-cheat-sheet",
+  "version": "1.0.0",
+  "description": "Easy CLI reference to Vim keys for noobs",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "benmneb",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "^5.0.1",
+    "commander": "^9.4.0"
+  }
+}

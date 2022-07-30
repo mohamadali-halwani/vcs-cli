@@ -1,9 +1,12 @@
 {
   "name": "vim-cheat-sheet",
   "version": "1.0.0",
-  "description": "Easy CLI reference to Vim keys for noobs",
+  "description": "Easy NodeJS CLI reference to Vim keys for noobs",
   "main": "index.js",
   "type": "module",
+  "bin": {
+    "vimcs": "./index.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

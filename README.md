@@ -1,8 +1,7 @@
 # Vim Cheat Sheet CLI
 
-`vimcheat.sh` is a lightweight Bash script that fetches the Vim cheat sheet from the
-[vim-cheat-sheet](https://github.com/rtorr/vim-cheat-sheet) project. The data is cached
-locally and displayed with colours that mimic the layout of the original page.
+`vimcheat.sh` is a lightweight Bash script that fetches the Vim cheat sheet from the [vim-cheat-sheet](https://github.com/rtorr/vim-cheat-sheet) project.
+The data is cached locally and displayed with colours via `tput` to mimic the layout of the original page.
 
 ## Installation
 

@@ -1,13 +1,14 @@
-diff --git a//dev/null b/vimcheat.sh
-index 0000000000000000000000000000000000000000..3237bdd324695b26671d23688eecd686ec80414f 100755
---- a//dev/null
-+++ b/vimcheat.sh
-@@ -0,0 +1,101 @@
-+#!/bin/bash
-+# vimcheat.sh - Local Vim cheat sheet terminal app
-+
-+set -e
-+
+COL_SEP=$(tput setaf 8)
+  printf "  %b--search%b TERM       %bSearch commands matching TERM%b\n" "$COL_CMD" "$RESET" "$COL_DESC" "$RESET"
+  printf "  %b--category%b NAME     %bShow commands for category NAME%b\n" "$COL_CMD" "$RESET" "$COL_DESC" "$RESET"
+  printf "  %b--categories%b        %bList all categories%b\n" "$COL_CMD" "$RESET" "$COL_DESC" "$RESET"
+  printf "  %b--all%b               %bDisplay full cheat sheet%b\n" "$COL_CMD" "$RESET" "$COL_DESC" "$RESET"
+  printf "  %b--help%b              %bShow this help%b\n" "$COL_CMD" "$RESET" "$COL_DESC" "$RESET"
+  awk -F"\t" -v cat="$cat" -v h="${BOLD}${COL_HEADER}" -v c="${COL_CMD}" -v d="${COL_DESC}" -v s="${COL_SEP}" -v r="${RESET}" '
+      printf "  %s%-15s%s %s- %s%s%s\n", c,$2,r,s,d,$3,r
+  awk -F"\t" -v h="${BOLD}${COL_HEADER}" -v c="${COL_CMD}" -v d="${COL_DESC}" -v s="${COL_SEP}" -v r="${RESET}" '
+      printf "  %s%-15s%s %s- %s%s%s\n", c,$2,r,s,d,$3,r
+  grep -i "$1" "$TSV_FILE" | awk -F"\t" -v h="${BOLD}${COL_HEADER}" -v c="${COL_CMD}" -v d="${COL_DESC}" -v s="${COL_SEP}" -v r="${RESET}" '{printf "%s%-20s%s %s| %s%-15s%s %s- %s%s%s\n",h,$1,r,s,c,$2,r,s,d,$3,r}'
 +CHEAT_URL="https://raw.githubusercontent.com/rtorr/vim-cheat-sheet/master/locales/en_us.json"
 +CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/vimcheat"
 +JSON_FILE="$CACHE_DIR/vimcheat.json"

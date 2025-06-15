@@ -3,10 +3,11 @@
 
 set -e
 
-CHEAT_URL="https://raw.githubusercontent.com/rtorr/vim-cheat-sheet/master/locales/en_us.json"
 CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/vimcheat"
+CHEAT_URL="https://raw.githubusercontent.com/rtorr/vim-cheat-sheet/master/locales/en_us.json"
 JSON_FILE="$CACHE_DIR/vimcheat.json"
 TSV_FILE="$CACHE_DIR/vimcheat.tsv"
+MAP_FILE="$(dirname "$0")/mapping.tsv"
 CACHE_DAYS=7
 
 # colour definitions
@@ -45,6 +46,9 @@ fetch_data() {
     fi
   fi
   jq -r 'def order:["global","cursorMovement","insertMode","editing","markingText","visualCommands","registers","marks","macros","cutAndPaste","indentText","exiting","searchAndReplace","searchMultipleFiles","tabs","workingWithMultipleFiles","diff"]; order[] as $k | (.[ $k ]? // empty) as $cat | select($cat|type=="object" and has("commands")) | $cat.title as $t | $cat.commands | to_entries[] | [$t, .key, .value] | @tsv' "$JSON_FILE" > "$TSV_FILE"
+  if [ -f "$MAP_FILE" ]; then
+    awk -F '\t' 'NR==FNR {map[$1]=$2; next} {if(map[$2]) $2=map[$2]; print}' OFS='\t' "$MAP_FILE" "$TSV_FILE" > "$TSV_FILE.tmp" && mv "$TSV_FILE.tmp" "$TSV_FILE"
+  fi
 }
 
 list_categories() {

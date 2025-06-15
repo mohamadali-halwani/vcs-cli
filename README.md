@@ -1,7 +1,9 @@
 # Vim Cheat Sheet CLI
 
 `vimcheat.sh` is a lightweight Bash script that fetches the Vim cheat sheet from the [vim-cheat-sheet](https://github.com/rtorr/vim-cheat-sheet) project.
-The data is cached locally and displayed with colours via `tput` to mimic the layout of the original page.
+The data is cached locally and displayed with colours via `tput`.  A mapping of
+key names ensures special characters like `]c` are shown exactly as they appear
+on the website.
 
 ## Installation
 
@@ -35,5 +37,6 @@ Add `--help` to see a short summary of the options.
 
 ## Arch Linux package
 
-The repository ships with a `PKGBUILD` that allows you to build a package for Arch or derivative distributions. 
-The resulting package installs a `vimcheat`binary to `/usr/bin`.
+The repository ships with a `PKGBUILD` that allows you to build a package for
+Arch or derivative distributions. The resulting package installs a `vimcheat`
+binary to `/usr/bin`.

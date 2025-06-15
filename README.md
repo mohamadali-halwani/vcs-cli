@@ -24,10 +24,10 @@ is refreshed automatically once a week.
 ## Usage
 
 ```bash
-./vimcheat.sh --search "delete"      # Search the cheat sheet
-./vimcheat.sh --category "Editing"   # Show all commands in a category
-./vimcheat.sh --categories           # List available categories
-./vimcheat.sh --all                  # Show the full cheat sheet with paging
+vimcheat --search "delete"      # Search the cheat sheet
+vimcheat --category "Editing"   # Show all commands in a category
+vimcheat --categories           # List available categories
+vimcheat --all                  # Show the full cheat sheet with paging
 ```
 
 Add `--help` to see a short summary of the options.

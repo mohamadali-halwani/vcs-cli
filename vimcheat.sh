@@ -9,6 +9,13 @@ JSON_FILE="$CACHE_DIR/vimcheat.json"
 TSV_FILE="$CACHE_DIR/vimcheat.tsv"
 CACHE_DAYS=7
 
+# colour definitions
+RESET=$(tput sgr0)
+BOLD=$(tput bold)
+COL_HEADER=$(tput setaf 4)
+COL_CMD=$(tput setaf 6)
+COL_DESC=$(tput setaf 7)
+
 usage() {
   cat <<USAGE
 Usage: $0 [--search TERM] [--category NAME] [--categories] [--all] [--help]
@@ -39,23 +46,42 @@ fetch_data() {
       exit 1
     fi
   fi
-  jq -r 'to_entries[] | select(.value|type=="object" and has("commands")) | .value.title as $t | .value.commands | to_entries[] | [$t, .key, .value] | @tsv' "$JSON_FILE" > "$TSV_FILE"
+  jq -r 'def order:["global","cursorMovement","insertMode","editing","markingText","visualCommands","registers","marks","macros","cutAndPaste","indentText","exiting","searchAndReplace","searchMultipleFiles","tabs","workingWithMultipleFiles","diff"]; order[] as $k | (.[ $k ]? // empty) as $cat | select($cat|type=="object" and has("commands")) | $cat.title as $t | $cat.commands | to_entries[] | [$t, .key, .value] | @tsv' "$JSON_FILE" > "$TSV_FILE"
 }
 
 list_categories() {
-  cut -f1 "$TSV_FILE" | uniq
+  cut -f1 "$TSV_FILE" | uniq | while read -r c; do
+    printf "%b%s%b\n" "${BOLD}${COL_HEADER}" "$c" "$RESET"
+  done
 }
 
 show_category() {
-  awk -F"\t" -v cat="$1" 'tolower($1)==tolower(cat){printf "  %s - %s\n",$2,$3}' "$TSV_FILE"
+  local cat="$1"
+  grep -i -Fq "$cat"$'\t' "$TSV_FILE" || { echo "Unknown category: $cat" >&2; return 1; }
+  awk -F"\t" -v cat="$cat" -v h="${BOLD}${COL_HEADER}" -v c="${COL_CMD}" -v d="${COL_DESC}" -v r="${RESET}" '
+    tolower($1)==tolower(cat){
+      if(!shown){print h $1 r; print h "--------------------" r; shown=1}
+      printf "  %s%-15s%s - %s%s%s\n", c,$2,r,d,$3,r
+    }
+  ' "$TSV_FILE"
 }
 
 show_all() {
-  awk -F"\t" '{if(NR==1||$1!=prev){if(NR>1)print"";print $1":";prev=$1}printf "  %s - %s\n",$2,$3}' "$TSV_FILE"
+  awk -F"\t" -v h="${BOLD}${COL_HEADER}" -v c="${COL_CMD}" -v d="${COL_DESC}" -v r="${RESET}" '
+    NR==1 || $1!=prev {
+      if(NR>1) print "";
+      print h $1 r;
+      print h "--------------------" r;
+      prev=$1
+    }
+    {
+      printf "  %s%-15s%s - %s%s%s\n", c,$2,r,d,$3,r
+    }
+  ' "$TSV_FILE"
 }
 
 search_cmd() {
-  grep -i "$1" "$TSV_FILE" | awk -F"\t" '{printf "%s | %s - %s\n",$1,$2,$3}'
+  grep -i "$1" "$TSV_FILE" | awk -F"\t" -v h="${BOLD}${COL_HEADER}" -v c="${COL_CMD}" -v d="${COL_DESC}" -v r="${RESET}" '{printf "%s%-20s%s | %s%-15s%s - %s%s%s\n",h,$1,r,c,$2,r,d,$3,r}'
 }
 
 main() {

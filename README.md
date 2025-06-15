@@ -37,5 +37,6 @@ Add `--help` to see a short summary of the options.
 ## Arch Linux package
 
 The repository ships with a `PKGBUILD` that allows you to build a package for
-Arch or derivative distributions. The resulting package installs a `vimcheat`
+Arch or derivative distributions. The resulting pa
+ckage installs a `vimcheat`
 binary to `/usr/bin`.

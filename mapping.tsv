@@ -119,8 +119,8 @@ ctrlPlusi	Ctrl + i
 ctrlPluso	Ctrl + o
 colonchanges	:changes
 gcomma	g,
+ctrlPlusCloseSquare	Ctrl+]
 gsemicolon	g;
-ctrlPlusCloseSquare	Ctrl + ]
 recordA	qa
 stopRecording	q
 runA	@a
@@ -167,8 +167,8 @@ questionMarkPattern	?pattern
 backslashVpattern	\vpattern
 n	n
 N	N
-:PercentForwardSlashOldForwardSlashNewForwardSlashg	:%s/old/new/g
-:PercentForwardSlashOldForwardSlashNewForwardSlashgc	:%s/old/new/gc
+colonPercentForwardSlashOldForwardSlashNewForwardSlashg	:%s/old/new/g
+colonPercentForwardSlashOldForwardSlashNewForwardSlashgc	:%s/old/new/gc
 
 colonnoh	:noh[lsearch]
 coloncn	:cn[ext]

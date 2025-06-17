@@ -1,5 +1,5 @@
 #!/bin/bash
-# vcs.sh - Local Vim Cheat Sheet Command Line Interface app.
+# vcs.sh - Local Vim Cheat Sheet Command Line Interface app vcs-cli.
 
 set -e
 

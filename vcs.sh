@@ -111,11 +111,22 @@ fetch_data() {
         gsub("^[Cc]trl[Pp]lus"; "Ctrl+") |
         gsub("Plus"; "+")
       
-      # Colon commands
+      # Specific colon commands
+      elif . == "colonTerminal" then ":terminal"
+      elif . == "colonTabNew" then ":tabnew"
+      elif . == "colontabmove" then ":tabmove"
+      elif . == "colontabc" then ":tabc"
+      elif . == "colontabo" then ":tabo"
+      elif . == "colontabdo" then ":tabdo command"
+      elif . == "colonDiffthis" then ":diffthis"
+      elif . == "colonDiffupdate" then ":diffupdate"
+      elif . == "colonDiffoff" then ":diffoff"
+
+      # Generic colon commands
       elif test("^colon") then
         gsub("^colon"; ":") |
         gsub("Plus"; "+") |
-        gsub("([a-z])([A-Z])"; "\\1 \\2"; "g") |
+        gsub("(?<a>[a-z])(?<b>[A-Z])"; "\\(.a) \\(.b)") |
         ascii_downcase
       
       # Pattern matching commands
@@ -167,19 +178,6 @@ fetch_data() {
       elif . == "helpForKeyword" then ":h keyword"
       elif . == "saveAsFile" then ":sav file"
       elif . == "closePane" then ":q"
-      elif . == "colonTerminal" then ":terminal"
-      
-      # Window/tab management
-      elif . == "colonTabNew" then ":tabnew"
-      elif . == "colontabmove" then ":tabmove"
-      elif . == "colontabc" then ":tabc"
-      elif . == "colontabo" then ":tabo"
-      elif . == "colontabdo" then ":tabdo command"
-      
-      # Diff commands  
-      elif . == "colonDiffthis" then ":diffthis"
-      elif . == "colonDiffupdate" then ":diffupdate"
-      elif . == "colonDiffoff" then ":diffoff"
       
       # Pattern replacement for remaining items
       else

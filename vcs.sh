@@ -45,21 +45,100 @@ fetch_data() {
       exit 1
     fi
   fi
-  jq -r 'def order:["global","cursorMovement","insertMode","editing","markingText","visualCommands","registers","marks","macros","cutAndPaste","indentText","exiting","searchAndReplace","searchMultipleFiles","tabs","workingWithMultipleFiles","diff"]; order[] as $k | (.[ $k ]? // empty) as $cat | select($cat|type=="object" and has("commands")) | $cat.title as $t | $cat.commands | to_entries[] | [$t, .key, .value] | @tsv' "$JSON_FILE" > "$TSV_FILE"
+  
+  # Convert JSON keys to human-readable commands and create TSV
+  jq -r '
+    def humanize_key:
+      gsub("Plus"; " + ") |
+      gsub("Ctrl"; "Ctrl") |
+      gsub("Alt"; "Alt") |
+      gsub("Shift"; "Shift") |
+      gsub("Esc"; "Esc") |
+      gsub("Tab"; "Tab") |
+      gsub("Enter"; "Enter") |
+      gsub("Space"; "Space") |
+      gsub("Backspace"; "Backspace") |
+      gsub("Delete"; "Delete") |
+      gsub("Insert"; "Insert") |
+      gsub("Home"; "Home") |
+      gsub("End"; "End") |
+      gsub("PageUp"; "Page Up") |
+      gsub("PageDown"; "Page Down") |
+      gsub("Up"; "↑") |
+      gsub("Down"; "↓") |
+      gsub("Left"; "←") |
+      gsub("Right"; "→") |
+      gsub("zero"; "0") |
+      gsub("caret"; "^") |
+      gsub("dollar"; "$") |
+      gsub("semicolon"; ";") |
+      gsub("comma"; ",") |
+      gsub("dot"; ".") |
+      gsub("percent"; "%") |
+      gsub("tilde"; "~") |
+      gsub("backtick"; "`") |
+      gsub("quote"; "\"") |
+      gsub("apostrophe"; "'\''") |
+      gsub("openCurlyBrace"; "{") |
+      gsub("closeCurlyBrace"; "}") |
+      gsub("openSquare"; "[") |
+      gsub("closeSquare"; "]") |
+      gsub("openParen"; "(") |
+      gsub("closeParen"; ")") |
+      gsub("lessThan"; "<") |
+      gsub("greaterThan"; ">") |
+      gsub("forwardSlash"; "/") |
+      gsub("backslash"; "\\\\") |
+      gsub("questionMark"; "?") |
+      gsub("exclamation"; "!") |
+      gsub("at"; "@") |
+      gsub("hashtag"; "#") |
+      gsub("asterisk"; "*") |
+      gsub("ampersand"; "&") |
+      gsub("pipe"; "|") |
+      gsub("colon"; ":");
+      
+    def order:["global","cursorMovement","insertMode","editing","markingText","visualCommands","registers","marks","macros","cutAndPaste","indentText","exiting","searchAndReplace","searchMultipleFiles","tabs","workingWithMultipleFiles","diff"]; 
+    order[] as $k | 
+    (.[ $k ]? // empty) as $cat | 
+    select($cat|type=="object" and has("commands")) | 
+    $cat.title as $t | 
+    $cat.commands | 
+    to_entries[] | 
+    [$t, (.key | humanize_key), .value] | 
+    @tsv
+  ' "$JSON_FILE" > "$TSV_FILE"
+  
   if [ -f "$MAP_FILE" ]; then
-    awk -F '\t' 'NR==FNR {map[$1]=$2; next} {if(map[$2]) $2=map[$2]; print}' OFS='\t' "$MAP_FILE" "$TSV_FILE" > "$TSV_FILE.tmp" && mv "$TSV_FILE.tmp" "$TSV_FILE"
+    # Use proper field separator handling in awk
+    awk -F '\t' '
+      NR==FNR {map[$1]=$2; next} 
+      {
+        if(map[$2]) $2=map[$2]; 
+        print $1 "\t" $2 "\t" $3
+      }
+    ' "$MAP_FILE" "$TSV_FILE" > "$TSV_FILE.tmp" && mv "$TSV_FILE.tmp" "$TSV_FILE"
   fi
 }
 
 list_categories() {
-  cut -f1 "$TSV_FILE" | uniq | while read -r c; do
-    printf "%b%s%b\n" "${BOLD}${COL_HEADER}" "$c" "$RESET"
-  done
+    # Check if TSV file exists
+    if [[ ! -f "$TSV_FILE" ]]; then
+        echo "Error: File not found: $TSV_FILE" >&2
+        return 1
+    fi
+
+    # Extract, sort, and print unique categories with formatting
+    cut -f1 "$TSV_FILE" | uniq | while read -r c; do
+        printf "%b%s%b\n" "${BOLD}${COL_HEADER}" "$c" "$RESET"
+    done
 }
 
 show_category() {
   local cat="$1"
-  grep -i -Fq "$cat"$'\t' "$TSV_FILE" || { echo "Unknown category: $cat" >&2; return 1; }
+  # Use proper field separator for grep
+  grep -F "$(printf '%s\t' "$cat")" "$TSV_FILE" | head -1 > /dev/null || { echo "Unknown category: $cat" >&2; return 1; }
+  
   awk -F"\t" -v cat="$cat" -v h="${BOLD}${COL_HEADER}" -v c="${COL_CMD}" -v d="${COL_DESC}" -v s="${COL_SEP}" -v r="${RESET}" '
     BEGIN{IGNORECASE=1}
     $1==cat {

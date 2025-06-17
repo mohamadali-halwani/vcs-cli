@@ -167,6 +167,9 @@ questionMarkPattern	?pattern
 backslashVpattern	\vpattern
 n	n
 N	N
+:PercentForwardSlashOldForwardSlashNewForwardSlashg	:%s/old/new/g
+:PercentForwardSlashOldForwardSlashNewForwardSlashgc	:%s/old/new/gc
+
 colonnoh	:noh[lsearch]
 coloncn	:cn[ext]
 coloncp	:cp[revious]
@@ -181,8 +184,9 @@ colontabc	:tabc[lose]
 colontabo	:tabo[nly]
 colontabdo	:tabdo
 colone	:e[dit] file
+:TabNew	:tabnew
 colonbd	:bd[elete]
-colonbnumber	:b[uffer]#
+:bnumber	:b<number of buffer>
 colonbfile	:b[uffer] file
 colonls	:ls
 colonsp	:sp[lit] file

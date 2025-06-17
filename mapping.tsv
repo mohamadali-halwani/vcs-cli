@@ -39,12 +39,12 @@ comma	,
 closeCurlyBrace	}
 openCurlyBrace	{
 centerCursor	zz
-CtrlPluse	Ctrl
-CtrlPlusy	Ctrl
-CtrlPlusb	Ctrl
-CtrlPlusf	Ctrl
-CtrlPlusd	Ctrl
-CtrlPlusu	Ctrl
+Ctrl+Pluse	Ctrl + e
+CtrlPlusy	Ctrl + y
+CtrlPlusb	Ctrl + b
+CtrlPlusf	Ctrl + f
+CtrlPlusd	Ctrl + d
+CtrlPlusu	Ctrl + u
 i	i
 I	I
 a	a
@@ -52,15 +52,15 @@ A	A
 o	o
 O	O
 ea	ea
-ctrlPlush	Ctrl
-ctrlPlusw	Ctrl
-ctrlPlusj	Ctrl
-ctrlPlust	Ctrl
-ctrlPlusd	Ctrl
-ctrlPlusn	Ctrl
-ctrlPlusp	Ctrl
-ctrlPlusrx	Ctrl
-ctrlPlusox	Ctrl
+ctrlPlush	Ctrl + h
+ctrlPlusw	Ctrl + w
+ctrlPlusj	Ctrl + j
+ctrlPlust	Ctrl + t
+ctrlPlusd	Ctrl + d
+ctrlPlusn	Ctrl + n
+ctrlPlusp	Ctrl + p
+ctrlPlusrx	Ctrl + rx
+ctrlPlusox	Ctrl + ox
 Esc	Esc
 r	r
 R	R
@@ -79,12 +79,12 @@ S	S
 xp	xp
 u	u
 U	U
-CtrlPlusr	Ctrl
+CtrlPlusr	Ctrl + r
 dot	.
 v	v
 V	V
 o	o
-CtrlPlusv	Ctrl
+CtrlPlusv	Ctrl + v
 O	O
 aw	aw
 ab	ab
@@ -94,8 +94,8 @@ ib	ib
 iB	iB
 it	it
 Esc	Esc
-greaterThan	&#62;
-lessThan	&#60;
+greaterThan	>
+lessThan	<
 y	y
 d	d
 tilde	~
@@ -115,12 +115,12 @@ backtickQuote	`"
 backtickDot	`.
 backtickBacktick	``
 colonjumps	:ju[mps]
-ctrlPlusi	Ctrl
-ctrlPluso	Ctrl
+ctrlPlusi	Ctrl + i
+ctrlPluso	Ctrl + o
 colonchanges	:changes
 gcomma	g,
 gsemicolon	g;
-ctrlPlusCloseSquare	Ctrl
+ctrlPlusCloseSquare	Ctrl + ]
 recordA	qa
 stopRecording	q
 runA	@a
@@ -145,12 +145,12 @@ gPatternD	:g/{pattern}/d
 gNotPatternD	:g!/{pattern}/d
 dDollar	d$
 x	x
-greaterThanGreaterThan	&#62;&#62;
-lessThanLessThan	&#60;&#60;
-greaterThanPercent	&#62;%
-lessThanPercent	&#60;%
-greaterThanib	&#62;ib
-greaterThanat	&#62;at
+greaterThanGreaterThan	>>
+lessThanLessThan	<<
+greaterThanPercent	>%
+lessThanPercent	<%
+greaterThanib	>ib
+greaterThanat	>at
 3==	3==
 =Percent	=%
 =iB	=iB
@@ -175,7 +175,7 @@ coloncn	:cn[ext]
 coloncp	:cp[revious]
 coloncopen	:cope[n]
 coloncclose	:ccl[ose]
-ctrlPluswT	Ctrl
+ctrlPluswT	Ctrl + wT
 gt	gt
 gT	gT
 hashgt	#gt
@@ -187,26 +187,28 @@ colone	:e[dit] file
 :TabNew	:tabnew
 colonbd	:bd[elete]
 :bnumber	:b<number of buffer>
+colonnumber	:b[uffer]#
+colonbnumber	:b[uffer]#
 colonbfile	:b[uffer] file
 colonls	:ls
 colonsp	:sp[lit] file
 colonvsp	:vs[plit] file
 colonvertba	:vert[ical] ba[ll]
 colontabba	:tab ba[ll]
-ctrlPlusws	Ctrl
-ctrlPluswv	Ctrl
-ctrlPlusww	Ctrl
-ctrlPluswq	Ctrl
-ctrlPluswx	Ctrl
-ctrlPlusw=	Ctrl
-ctrlPluswh	Ctrl
-ctrlPluswl	Ctrl
-ctrlPluswj	Ctrl
-ctrlPluswk	Ctrl
-ctrlPluswH	Ctrl
-ctrlPluswL	Ctrl
-ctrlPluswJ	Ctrl
-ctrlPluswK	Ctrl
+ctrlPlusws	Ctrl + ws
+ctrlPluswv	Ctrl + wv
+ctrlPlusww	Ctrl + ww
+ctrlPluswq	Ctrl + wq
+ctrlPluswx	Ctrl + wx
+ctrlPlusw=	Ctrl + w=
+ctrlPluswh	Ctrl + wh
+ctrlPluswl	Ctrl + wl
+ctrlPluswj	Ctrl + wj
+ctrlPluswk	Ctrl + wk
+ctrlPluswH	Ctrl + wH
+ctrlPluswL	Ctrl + wL
+ctrlPluswJ	Ctrl + wJ
+ctrlPluswK	Ctrl + wK
 zf	zf
 zd	zd
 za	za

@@ -1,12 +1,12 @@
 #!/bin/bash
-# vimcheat.sh - Local Vim cheat sheet terminal app
+# vcs.sh - Local Vim Cheat Sheet Command Line Interface app.
 
 set -e
 
-CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/vimcheat"
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/vcs"
 CHEAT_URL="https://raw.githubusercontent.com/rtorr/vim-cheat-sheet/master/locales/en_us.json"
-JSON_FILE="$CACHE_DIR/vimcheat.json"
-TSV_FILE="$CACHE_DIR/vimcheat.tsv"
+JSON_FILE="$CACHE_DIR/vcs.json"
+TSV_FILE="$CACHE_DIR/vcs.tsv"
 MAP_FILE="$(dirname "$0")/mapping.tsv"
 CACHE_DAYS=7
 
@@ -46,57 +46,149 @@ fetch_data() {
     fi
   fi
   
-  # Convert JSON keys to human-readable commands and create TSV
+  # Convert JSON keys to actual vim commands and create TSV
   jq -r '
-    def humanize_key:
-      gsub("Plus"; " + ") |
-      gsub("Ctrl"; "Ctrl") |
-      gsub("Alt"; "Alt") |
-      gsub("Shift"; "Shift") |
-      gsub("Esc"; "Esc") |
-      gsub("Tab"; "Tab") |
-      gsub("Enter"; "Enter") |
-      gsub("Space"; "Space") |
-      gsub("Backspace"; "Backspace") |
-      gsub("Delete"; "Delete") |
-      gsub("Insert"; "Insert") |
-      gsub("Home"; "Home") |
-      gsub("End"; "End") |
-      gsub("PageUp"; "Page Up") |
-      gsub("PageDown"; "Page Down") |
-      gsub("Up"; "↑") |
-      gsub("Down"; "↓") |
-      gsub("Left"; "←") |
-      gsub("Right"; "→") |
-      gsub("zero"; "0") |
-      gsub("caret"; "^") |
-      gsub("dollar"; "$") |
-      gsub("semicolon"; ";") |
-      gsub("comma"; ",") |
-      gsub("dot"; ".") |
-      gsub("percent"; "%") |
-      gsub("tilde"; "~") |
-      gsub("backtick"; "`") |
-      gsub("quote"; "\"") |
-      gsub("apostrophe"; "'\''") |
-      gsub("openCurlyBrace"; "{") |
-      gsub("closeCurlyBrace"; "}") |
-      gsub("openSquare"; "[") |
-      gsub("closeSquare"; "]") |
-      gsub("openParen"; "(") |
-      gsub("closeParen"; ")") |
-      gsub("lessThan"; "<") |
-      gsub("greaterThan"; ">") |
-      gsub("forwardSlash"; "/") |
-      gsub("backslash"; "\\\\") |
-      gsub("questionMark"; "?") |
-      gsub("exclamation"; "!") |
-      gsub("at"; "@") |
-      gsub("hashtag"; "#") |
-      gsub("asterisk"; "*") |
-      gsub("ampersand"; "&") |
-      gsub("pipe"; "|") |
-      gsub("colon"; ":");
+    def key_to_command:
+      # Cursor positioning
+      if . == "topCursor" then "zt"
+      elif . == "bottomCursor" then "zb" 
+      elif . == "centerCursor" then "zz"
+      
+      # Basic symbols
+      elif . == "zero" then "0"
+      elif . == "caret" then "^"
+      elif . == "dollar" then "$"
+      elif . == "semicolon" then ";"
+      elif . == "comma" then ","
+      elif . == "dot" then "."
+      elif . == "percent" then "%"
+      elif . == "tilde" then "~"
+      elif . == "backtick" then "`"
+      elif . == "quote" then "\""
+      elif . == "apostrophe" then "'"'"'"
+      
+      # Brackets and braces
+      elif . == "openCurlyBrace" then "{"
+      elif . == "closeCurlyBrace" then "}"
+      elif . == "openSquare" then "["
+      elif . == "closeSquare" then "]"
+      elif . == "openParen" then "("
+      elif . == "closeParen" then ")"
+      elif . == "lessThan" then "<"
+      elif . == "greaterThan" then ">"
+      elif . == "lessThanLessThan" then "<<"
+      elif . == "greaterThanGreaterThan" then ">>"
+      elif . == "lessThanPercent" then "<%"
+      elif . == "greaterThanPercent" then ">%"
+      elif . == "greaterThanib" then ">ib"
+      elif . == "greaterThanat" then ">at"
+      
+      # Slashes and symbols
+      elif . == "forwardSlash" then "/"
+      elif . == "backslash" then "\\\\"
+      elif . == "questionMark" then "?"
+      elif . == "exclamation" then "!"
+      elif . == "at" then "@"
+      elif . == "hashtag" then "#"
+      elif . == "asterisk" then "*"
+      elif . == "ampersand" then "&"
+      elif . == "pipe" then "|"
+      elif . == "colon" then ":"
+      
+      # Numbers and special combinations
+      elif . == "fiveG" then "5G"
+      elif . == "twoyy" then "2yy"
+      elif . == "twodd" then "2dd"
+      elif . == "3==" then "3=="
+      elif . == "threeToFiveD" then "3,5d"
+      elif . == "tenCommaOneD" then "10,1d"
+      elif . == "dotCommaDollarD" then ".,$ d"
+      elif . == "dotCommaOneD" then ".,1 d"
+      elif . == "hashgt" then "#gt"
+      
+      # Ctrl combinations
+      elif test("^[Cc]trl[Pp]lus") then
+        gsub("^[Cc]trl[Pp]lus"; "Ctrl+") |
+        gsub("Plus"; "+")
+      
+      # Colon commands
+      elif test("^colon") then
+        gsub("^colon"; ":") |
+        gsub("Plus"; "+") |
+        gsub("([a-z])([A-Z])"; "\\1 \\2"; "g") |
+        ascii_downcase
+      
+      # Pattern matching commands
+      elif . == "forwardSlashPattern" then "/pattern"
+      elif . == "questionMarkPattern" then "?pattern"
+      elif . == "backslashVpattern" then "\\vpattern"
+      elif . == "colonPercentForwardSlashOldForwardSlashNewForwardSlashg" then ":%s/old/new/g"
+      elif . == "colonPercentForwardSlashOldForwardSlashNewForwardSlashgc" then ":%s/old/new/gc"
+      elif . == "colonnoh" then ":noh"
+      
+      # Special cases for various commands
+      elif . == "gTilde" then "g~"
+      elif . == "cDollar" then "c$"
+      elif . == "yDollar" then "y$"
+      elif . == "dDollar" then "d$"
+      elif . == "=Percent" then "=%"
+      elif . == "=iB" then "=iB"
+      elif . == "gg=G" then "gg=G"
+      elif . == "closeSquarep" then "]p"
+      elif . == "closeSquarec" then "]c"
+      elif . == "openSquarec" then "[c"
+      
+      # Registers and marks  
+      elif . == "show" then ":reg"
+      elif . == "pasteRegisterX" then "\"xp"
+      elif . == "yankIntoRegisterX" then "\"xy"
+      elif . == "quotePlusy" then "\"+y"
+      elif . == "quotePlusp" then "\"+p"
+      elif . == "list" then ":marks"
+      elif . == "currentPositionA" then "ma"
+      elif . == "jumpPositionA" then "'"'"'a"
+      elif . == "yankToMarkA" then "y'"'"'a"
+      elif . == "backtick0" then "`0"
+      elif . == "backtickQuote" then "`\""
+      elif . == "backtickDot" then "`."
+      elif . == "backtickBacktick" then "``"
+      elif . == "colonjumps" then ":jumps"
+      elif . == "colonchanges" then ":changes"
+      elif . == "gcomma" then "g,"
+      elif . == "gsemicolon" then "g;"
+      
+      # Macros
+      elif . == "recordA" then "qa"
+      elif . == "stopRecording" then "q"
+      elif . == "runA" then "@a"
+      elif . == "rerun" then "@@"
+      
+      # Global commands
+      elif . == "helpForKeyword" then ":h keyword"
+      elif . == "saveAsFile" then ":sav file"
+      elif . == "closePane" then ":q"
+      elif . == "colonTerminal" then ":terminal"
+      
+      # Window/tab management
+      elif . == "colonTabNew" then ":tabnew"
+      elif . == "colontabmove" then ":tabmove"
+      elif . == "colontabc" then ":tabc"
+      elif . == "colontabo" then ":tabo"
+      elif . == "colontabdo" then ":tabdo command"
+      
+      # Diff commands  
+      elif . == "colonDiffthis" then ":diffthis"
+      elif . == "colonDiffupdate" then ":diffupdate"
+      elif . == "colonDiffoff" then ":diffoff"
+      
+      # Pattern replacement for remaining items
+      else
+        gsub("Plus"; "+") |
+        gsub("^colon"; ":") |
+        gsub("^Ctrl"; "Ctrl") |
+        gsub("^ctrl"; "Ctrl") |
+        .
+      end;
       
     def order:["global","cursorMovement","insertMode","editing","markingText","visualCommands","registers","marks","macros","cutAndPaste","indentText","exiting","searchAndReplace","searchMultipleFiles","tabs","workingWithMultipleFiles","diff"]; 
     order[] as $k | 
@@ -105,7 +197,7 @@ fetch_data() {
     $cat.title as $t | 
     $cat.commands | 
     to_entries[] | 
-    [$t, (.key | humanize_key), .value] | 
+    [$t, (.key | key_to_command), .value] | 
     @tsv
   ' "$JSON_FILE" > "$TSV_FILE"
   

@@ -1,14 +1,14 @@
-pkgname=vimcheat
+pkgname=vcs
 pkgver=1.0.0
 pkgrel=1
 pkgdesc="Vim cheat sheet command line tool in Bash"
 arch=('any')
-url="https://github.com/example/vimcheat"
-license=('MIT')
+url="https://github.com/mohamadali-halwani/vcs-cli.git"
+license=('GPL3')
 depends=('bash' 'jq' 'coreutils')
-source=(vimcheat.sh)
+source=(vcs.sh)
 sha256sums=('SKIP')
 
 package() {
-    install -Dm755 "$srcdir/vimcheat.sh" "$pkgdir/usr/bin/vimcheat"
+    install -Dm755 "$srcdir/vcs.sh" "$pkgdir/usr/bin/vcs"
 }

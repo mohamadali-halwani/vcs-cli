@@ -10,270 +10,313 @@ TSV_FILE="$CACHE_DIR/vcs.tsv"
 MAP_FILE="$(dirname "$0")/mapping.tsv"
 CACHE_DAYS=7
 
-# colour definitions
+# Color definitions
 RESET=$(tput sgr0)
 BOLD=$(tput bold)
-COL_HEADER=$(tput setaf 4)
-COL_CMD=$(tput setaf 6)
-COL_DESC=$(tput setaf 7)
-COL_SEP=$(tput setaf 8)
+UNDERLINE=$(tput smul)
+DIM=$(tput dim)
+
+# Main colors
+COL_HEADER=$(tput setaf 4)    # Blue
+COL_CMD=$(tput setaf 6)       # Cyan
+COL_DESC=$(tput setaf 7)      # White
+COL_SEP=$(tput setaf 8)       # Gray
+COL_SECTION=$(tput setaf 5)   # Magenta
+COL_HIGHLIGHT=$(tput setaf 3) # Yellow
+COL_SPECIAL=$(tput setaf 2)   # Green
+
+# Color disable support
+NO_COLOR=${NO_COLOR:-""}
+if [ -n "$NO_COLOR" ]; then
+    RESET="" BOLD="" UNDERLINE="" DIM=""
+    COL_HEADER="" COL_CMD="" COL_DESC="" COL_SEP=""
+    COL_SECTION="" COL_HIGHLIGHT="" COL_SPECIAL=""
+fi
 
 usage() {
-  printf "%bUsage:%b %s [OPTIONS]\n\n" "${BOLD}${COL_HEADER}" "${RESET}" "$0"
-  printf "  %b--search%b TERM       %bSearch commands matching TERM%b\n" "$COL_CMD" "$RESET" "$COL_DESC" "$RESET"
-  printf "  %b--category%b NAME     %bShow commands for category NAME%b\n" "$COL_CMD" "$RESET" "$COL_DESC" "$RESET"
-  printf "  %b--categories%b        %bList all categories%b\n" "$COL_CMD" "$RESET" "$COL_DESC" "$RESET"
-  printf "  %b--all%b               %bDisplay full cheat sheet%b\n" "$COL_CMD" "$RESET" "$COL_DESC" "$RESET"
-  printf "  %b--help%b              %bShow this help%b\n" "$COL_CMD" "$RESET" "$COL_DESC" "$RESET"
+    cat << EOF
+${BOLD}${COL_HEADER}Usage:${RESET} $(basename "$0") [OPTIONS]
+
+Options:
+  ${COL_CMD}--search${RESET} TERM       ${COL_DESC}Search commands matching TERM${RESET}
+  ${COL_CMD}--category${RESET} NAME     ${COL_DESC}Show commands for category NAME${RESET}
+  ${COL_CMD}--categories${RESET}        ${COL_DESC}List all categories${RESET}
+  ${COL_CMD}--all${RESET}              ${COL_DESC}Display full cheat sheet${RESET}
+  ${COL_CMD}--help${RESET}             ${COL_DESC}Show this help${RESET}
+EOF
 }
 
 pager() {
-  if command -v bat &>/dev/null; then
-    bat --paging=always
-  elif command -v less &>/dev/null; then
-    less -R
-  else
-    cat
-  fi
-}
-
-fetch_data() {
-  mkdir -p "$CACHE_DIR"
-  if [ ! -f "$JSON_FILE" ] || [ $(($(date +%s) - $(stat -c %Y "$JSON_FILE" 2>/dev/null))) -ge $((CACHE_DAYS*24*3600)) ]; then
-    if ! curl -fsSL "$CHEAT_URL" -o "$JSON_FILE"; then
-      echo "Failed to download cheat sheet" >&2
-      exit 1
+    if command -v bat >/dev/null 2>&1; then
+        bat --paging=always
+    elif command -v less >/dev/null 2>&1; then
+        less -R
+    else
+        cat
     fi
-  fi
-  
-  # Convert JSON keys to actual vim commands and create TSV
-  jq -r '
-    def key_to_command:
-      # Cursor positioning
-      if . == "topCursor" then "zt"
-      elif . == "bottomCursor" then "zb" 
-      elif . == "centerCursor" then "zz"
-      
-      # Basic symbols
-      elif . == "zero" then "0"
-      elif . == "caret" then "^"
-      elif . == "dollar" then "$"
-      elif . == "semicolon" then ";"
-      elif . == "comma" then ","
-      elif . == "dot" then "."
-      elif . == "percent" then "%"
-      elif . == "tilde" then "~"
-      elif . == "backtick" then "`"
-      elif . == "quote" then "\""
-      elif . == "apostrophe" then "'"'"'"
-      
-      # Brackets and braces
-      elif . == "openCurlyBrace" then "{"
-      elif . == "closeCurlyBrace" then "}"
-      elif . == "openSquare" then "["
-      elif . == "closeSquare" then "]"
-      elif . == "openParen" then "("
-      elif . == "closeParen" then ")"
-      elif . == "lessThan" then "<"
-      elif . == "greaterThan" then ">"
-      elif . == "lessThanLessThan" then "<<"
-      elif . == "greaterThanGreaterThan" then ">>"
-      elif . == "lessThanPercent" then "<%"
-      elif . == "greaterThanPercent" then ">%"
-      elif . == "greaterThanib" then ">ib"
-      elif . == "greaterThanat" then ">at"
-      
-      # Slashes and symbols
-      elif . == "forwardSlash" then "/"
-      elif . == "backslash" then "\\\\"
-      elif . == "questionMark" then "?"
-      elif . == "exclamation" then "!"
-      elif . == "at" then "@"
-      elif . == "hashtag" then "#"
-      elif . == "asterisk" then "*"
-      elif . == "ampersand" then "&"
-      elif . == "pipe" then "|"
-      elif . == "colon" then ":"
-      
-      # Numbers and special combinations
-      elif . == "fiveG" then "5G"
-      elif . == "twoyy" then "2yy"
-      elif . == "twodd" then "2dd"
-      elif . == "3==" then "3=="
-      elif . == "threeToFiveD" then "3,5d"
-      elif . == "tenCommaOneD" then "10,1d"
-      elif . == "dotCommaDollarD" then ".,$ d"
-      elif . == "dotCommaOneD" then ".,1 d"
-      elif . == "hashgt" then "#gt"
-      
-      # Ctrl combinations
-      elif test("^[Cc]trl[Pp]lus") then
-        gsub("^[Cc]trl[Pp]lus"; "Ctrl+") |
-        gsub("Plus"; "+")
-      
-      # Specific colon commands
-      elif . == "colonTerminal" then ":terminal"
-      elif . == "colonTabNew" then ":tabnew"
-      elif . == "colontabmove" then ":tabmove"
-      elif . == "colontabc" then ":tabc"
-      elif . == "colontabo" then ":tabo"
-      elif . == "colontabdo" then ":tabdo command"
-      elif . == "colonDiffthis" then ":diffthis"
-      elif . == "colonDiffupdate" then ":diffupdate"
-      elif . == "colonDiffoff" then ":diffoff"
-
-      # Generic colon commands
-      elif test("^colon") then
-        gsub("^colon"; ":") |
-        gsub("Plus"; "+") |
-        gsub("(?<a>[a-z])(?<b>[A-Z])"; "\\(.a) \\(.b)") |
-        ascii_downcase
-      
-      # Pattern matching commands
-      elif . == "forwardSlashPattern" then "/pattern"
-      elif . == "questionMarkPattern" then "?pattern"
-      elif . == "backslashVpattern" then "\\vpattern"
-      elif . == "colonPercentForwardSlashOldForwardSlashNewForwardSlashg" then ":%s/old/new/g"
-      elif . == "colonPercentForwardSlashOldForwardSlashNewForwardSlashgc" then ":%s/old/new/gc"
-      elif . == "colonnoh" then ":noh"
-      
-      # Special cases for various commands
-      elif . == "gTilde" then "g~"
-      elif . == "cDollar" then "c$"
-      elif . == "yDollar" then "y$"
-      elif . == "dDollar" then "d$"
-      elif . == "=Percent" then "=%"
-      elif . == "=iB" then "=iB"
-      elif . == "gg=G" then "gg=G"
-      elif . == "closeSquarep" then "]p"
-      elif . == "closeSquarec" then "]c"
-      elif . == "openSquarec" then "[c"
-      
-      # Registers and marks  
-      elif . == "show" then ":reg"
-      elif . == "pasteRegisterX" then "\"xp"
-      elif . == "yankIntoRegisterX" then "\"xy"
-      elif . == "quotePlusy" then "\"+y"
-      elif . == "quotePlusp" then "\"+p"
-      elif . == "list" then ":marks"
-      elif . == "currentPositionA" then "ma"
-      elif . == "jumpPositionA" then "'"'"'a"
-      elif . == "yankToMarkA" then "y'"'"'a"
-      elif . == "backtick0" then "`0"
-      elif . == "backtickQuote" then "`\""
-      elif . == "backtickDot" then "`."
-      elif . == "backtickBacktick" then "``"
-      elif . == "colonjumps" then ":jumps"
-      elif . == "colonchanges" then ":changes"
-      elif . == "gcomma" then "g,"
-      elif . == "gsemicolon" then "g;"
-      
-      # Macros
-      elif . == "recordA" then "qa"
-      elif . == "stopRecording" then "q"
-      elif . == "runA" then "@a"
-      elif . == "rerun" then "@@"
-      
-      # Global commands
-      elif . == "helpForKeyword" then ":h keyword"
-      elif . == "saveAsFile" then ":sav file"
-      elif . == "closePane" then ":q"
-      
-      # Pattern replacement for remaining items
-      else
-        gsub("Plus"; "+") |
-        gsub("^colon"; ":") |
-        gsub("^Ctrl"; "Ctrl") |
-        gsub("^ctrl"; "Ctrl") |
-        .
-      end;
-      
-    def order:["global","cursorMovement","insertMode","editing","markingText","visualCommands","registers","marks","macros","cutAndPaste","indentText","exiting","searchAndReplace","searchMultipleFiles","tabs","workingWithMultipleFiles","diff"]; 
-    order[] as $k | 
-    (.[ $k ]? // empty) as $cat | 
-    select($cat|type=="object" and has("commands")) | 
-    $cat.title as $t | 
-    $cat.commands | 
-    to_entries[] | 
-    [$t, (.key | key_to_command), .value] | 
-    @tsv
-  ' "$JSON_FILE" > "$TSV_FILE"
-  
-  if [ -f "$MAP_FILE" ]; then
-    # Use proper field separator handling in awk
-    awk -F '\t' '
-      NR==FNR {map[$1]=$2; next} 
-      {
-        if(map[$2]) $2=map[$2]; 
-        print $1 "\t" $2 "\t" $3
-      }
-    ' "$MAP_FILE" "$TSV_FILE" > "$TSV_FILE.tmp" && mv "$TSV_FILE.tmp" "$TSV_FILE"
-  fi
 }
 
 list_categories() {
-    # Check if TSV file exists
     if [[ ! -f "$TSV_FILE" ]]; then
-        echo "Error: File not found: $TSV_FILE" >&2
+        echo "${COL_SPECIAL}Error:${RESET} File not found: ${COL_HIGHLIGHT}$TSV_FILE${RESET}" >&2
         return 1
     fi
 
-    # Extract, sort, and print unique categories with formatting
-    cut -f1 "$TSV_FILE" | uniq | while read -r c; do
-        printf "%b%s%b\n" "${BOLD}${COL_HEADER}" "$c" "$RESET"
+    printf "\n%b%s%b\n" "${BOLD}${COL_SECTION}" "Available Categories:" "$RESET"
+    printf "%b%s%b\n" "${COL_SEP}" "━━━━━━━━━━━━━━━━━" "$RESET"
+    
+    cut -f1 "$TSV_FILE" | sort | uniq | while read -r category; do
+        printf "  %b%s%b\n" "${BOLD}${COL_HEADER}" "$category" "$RESET"
     done
+    printf "\n"
 }
 
 show_category() {
-  local cat="$1"
-  # Use proper field separator for grep
-  grep -F "$(printf '%s\t' "$cat")" "$TSV_FILE" | head -1 > /dev/null || { echo "Unknown category: $cat" >&2; return 1; }
-  
-  awk -F"\t" -v cat="$cat" -v h="${BOLD}${COL_HEADER}" -v c="${COL_CMD}" -v d="${COL_DESC}" -v s="${COL_SEP}" -v r="${RESET}" '
-    BEGIN{IGNORECASE=1}
-    $1==cat {
-      if(!shown){print h $1 r; print h "--------------------" r; shown=1}
-      printf "  %s%-15s%s %s- %s%s%s\n", c, $2, r, s, d, $3, r
-    }
-  ' "$TSV_FILE"
-}
-
-show_all() {
-  awk -F"\t" -v h="${BOLD}${COL_HEADER}" -v c="${COL_CMD}" -v d="${COL_DESC}" -v s="${COL_SEP}" -v r="${RESET}" '
-    NR==1 || $1!=prev {
-      if(NR>1) print "";
-      print h $1 r;
-      print h "--------------------" r;
-      prev=$1
-    }
-    {
-      printf "  %s%-15s%s %s- %s%s%s\n", c,$2,r,s,d,$3,r
-    }
-  ' "$TSV_FILE"
+    local cat="$1"
+    if ! grep -q "^${cat}	" "$TSV_FILE"; then
+        echo "${COL_SPECIAL}Error:${RESET} Unknown category: ${COL_HIGHLIGHT}$cat${RESET}" >&2
+        return 1
+    fi
+    
+    awk -F'\t' -v cat="$cat" \
+        -v h="${BOLD}${COL_SECTION}" \
+        -v c="${COL_CMD}" \
+        -v d="${COL_DESC}" \
+        -v s="${COL_SEP}" \
+        -v r="${RESET}" \
+        -v u="${UNDERLINE}" '
+        $1 == cat {
+            if (!shown) {
+                print ""
+                print h "━━━━ " u $1 u " ━━━━" r
+                print ""
+                shown=1
+            }
+            printf "  %s%-25s%s %s║%s %s%s%s\n", c, $2, r, s, r, d, $3, r
+        }
+    ' "$TSV_FILE"
 }
 
 search_cmd() {
-  grep -i "$1" "$TSV_FILE" | awk -F"\t" -v h="${BOLD}${COL_HEADER}" -v c="${COL_CMD}" -v d="${COL_DESC}" -v s="${COL_SEP}" -v r="${RESET}" '
-    BEGIN{IGNORECASE=1}
-    {printf "%s%-20s%s %s| %s%-15s%s %s- %s%s%s\n", h, $1, r, s, c, $2, r, s, d, $3, r}
-  '
+    local term="$1"
+    printf "\n%b%s%b\n" "${BOLD}${COL_SECTION}" "Search Results:" "${RESET}"
+    printf "%b%s%b\n\n" "${COL_SEP}" "━━━━━━━━━━━━━" "${RESET}"
+    
+    grep -i "$term" "$TSV_FILE" | \
+    awk -F'\t' \
+        -v h="${BOLD}${COL_SECTION}" \
+        -v c="${COL_CMD}" \
+        -v d="${COL_DESC}" \
+        -v s="${COL_SEP}" \
+        -v r="${RESET}" \
+        -v hl="${COL_HIGHLIGHT}" '
+        {
+            printf "%s%s%s%s%s\n", h, "Found in: ", hl, $1, r
+            printf "  %s%-25s%s %s║%s %s%s%s\n\n", c, $2, r, s, r, d, $3, r
+        }
+    '
+}
+
+
+show_all() {
+    awk -F'\t' \
+        -v h="${BOLD}${COL_SECTION}" \
+        -v c="${COL_CMD}" \
+        -v d="${COL_DESC}" \
+        -v s="${COL_SEP}" \
+        -v r="${RESET}" \
+        -v u="${UNDERLINE}" '
+        NR==1 || $1!=prev {
+            if(NR>1) print "\n"
+            print h "┏━━━━━━━━━━━━━━━━━━━━━━━━━┓" r
+            print h "┃" r "      " h u $1 r h "      " h "┃" r
+            print h "┗━━━━━━━━━━━━━━━━━━━━━━━━━┛" r
+            prev=$1
+        }
+        {
+            cmd = $2
+            desc = $3
+            # Remove any HTML tags from description
+            gsub(/<[^>]*>/, "", desc)
+            printf "  %s%-25s%s %s║%s %s%s%s\n", c, cmd, r, s, r, d, desc, r
+        }
+    ' "$TSV_FILE"
+}
+
+fetch_data() {
+    mkdir -p "$CACHE_DIR"
+    
+    if [ ! -f "$JSON_FILE" ] || [ $(($(date +%s) - $(stat -c %Y "$JSON_FILE" 2>/dev/null))) -ge $((CACHE_DAYS*24*3600)) ]; then
+        if ! curl -fsSL "$CHEAT_URL" -o "$JSON_FILE"; then
+            echo "Failed to download cheat sheet" >&2
+            exit 1
+        fi
+    fi
+
+    jq -r '
+        def key_to_command:
+            # Cursor movement
+            if . == "topCursor" then "zt"
+            elif . == "bottomCursor" then "zb"
+            elif . == "centerCursor" then "zz"
+            
+            # Basic symbols
+            elif . == "zero" then "0"
+            elif . == "caret" then "^"
+            elif . == "dollar" then "$"
+            elif . == "dot" then "."
+            elif . == "percent" then "%"
+            elif . == "tilde" then "~"
+            elif . == "semicolon" then ";"
+            elif . == "comma" then ","
+            elif . == "backtick" then "`"
+            elif . == "quote" then "\""
+            # Note: special handling for apostrophe
+            elif . == "apostrophe" then "'\''"
+            
+            # Exit commands
+            elif . == "ZZ" then "ZZ"
+            elif . == "ZQ" then "ZQ"
+            
+            # Special keys
+            elif . == "Esc" then "<Esc>"
+            elif . == "Ctrl" then "<Ctrl>"
+            
+            # Registers
+            elif . == "quotePlus" then "\"+y"
+            elif . == "quotePlusp" then "\"+p"
+            elif . == "quoteZero" then "\"0"
+            elif . == "quotePercent" then "\"%"
+            elif . == "quotePound" then "\"#"
+            elif . == "quoteSlash" then "\""
+            elif . == "quoteColon" then "\":"
+            
+            # Replace commands
+            elif . == "colonPercentForwardSlashOldForwardSlashNewForwardSlashg" then ":%s/old/new/g"
+            elif . == "colonPercentForwardSlashOldForwardSlashNewForwardSlashgc" then ":%s/old/new/gc"
+            
+            # Tab commands
+            elif . == "colonTabNew" then ":tabnew"
+            elif . == "colonTabMove" then ":tabmove"
+            elif . == "colonTabClose" then ":tabc"
+            elif . == "colonTabOnly" then ":tabo"
+            elif . == "colonTabDo" then ":tabdo command"
+            
+            # Buffer commands
+            elif . == "colonBnext" then ":bnext"
+            elif . == "colonBprev" then ":bprev"
+            elif . == "colonBuffers" then ":ls"
+            elif . == "colonBdelete" then ":bd"
+            
+            # Window commands
+            elif . == "CtrlWs" then "Ctrl+w s"
+            elif . == "CtrlWv" then "Ctrl+w v"
+            elif . == "CtrlWw" then "Ctrl+w w"
+            elif . == "CtrlWq" then "Ctrl+w q"
+            elif . == "CtrlWx" then "Ctrl+w x"
+            elif . == "CtrlWEqual" then "Ctrl+w ="
+            elif . == "CtrlWh" then "Ctrl+w h"
+            elif . == "CtrlWj" then "Ctrl+w j"
+            elif . == "CtrlWk" then "Ctrl+w k"
+            elif . == "CtrlWl" then "Ctrl+w l"
+            elif . == "CtrlWH" then "Ctrl+w H"
+            elif . == "CtrlWJ" then "Ctrl+w J"
+            elif . == "CtrlWK" then "Ctrl+w K"
+            elif . == "CtrlWL" then "Ctrl+w L"
+            
+            # Diff commands
+            elif . == "dp" then "dp"
+            elif . == "do" then "do"
+            elif . == "colonDiffthis" then ":diffthis"
+            elif . == "colonDiffupdate" then ":diffupdate"
+            elif . == "colonDiffoff" then ":diffoff"
+            
+            # Other special cases
+            elif . == "gT" then "gT"
+            elif . == "gt" then "gt"
+            elif . == "colonwqa" then ":wqa"
+            elif . == "colonqBang" then ":q!"
+            elif . == "colonwsudo" then ":w !sudo tee %"
+            elif . == "colonw" then ":w"
+            elif . == "colonq" then ":q"
+            elif . == "colonwq" then ":wq"
+            elif . == "colone" then ":e"
+            elif . == "colonsp" then ":sp"
+            elif . == "colonvsp" then ":vsp"
+            elif . == "colonvertba" then ":vert ba"
+            elif . == "colontabba" then ":tab ba"
+            elif . == "colonnoh" then ":noh"
+            elif . == "colonvimgrep" then ":vimgrep"
+            elif . == "coloncn" then ":cn"
+            elif . == "coloncp" then ":cp"
+            elif . == "coloncopen" then ":copen"
+            elif . == "coloncclose" then ":cclose"
+            
+            # Default handling
+            elif test("^Ctrl") then
+                gsub("^Ctrl"; "<Ctrl>")
+            elif test("^colon") then
+                ":" + (.[5:] | ascii_downcase)
+            else
+                .
+            end;
+
+        def order: [
+            "global",
+            "cursorMovement",
+            "insertMode",
+            "editing",
+            "markingText",
+            "visualCommands",
+            "registers",
+            "marks",
+            "macros",
+            "cutAndPaste",
+            "indentText",
+            "exiting",
+            "searchAndReplace",
+            "searchMultipleFiles",
+            "tabs",
+            "workingWithMultipleFiles",
+            "diff"
+        ];
+
+        order[] as $k | 
+        (.[$k]? // empty) as $cat | 
+        select($cat|type=="object" and has("commands")) | 
+        $cat.title as $t | 
+        $cat.commands | 
+        to_entries[] | 
+        [$t, (.key | key_to_command), .value] | 
+        @tsv
+    ' "$JSON_FILE" > "$TSV_FILE"
+
+    if [ -f "$MAP_FILE" ]; then
+        awk -F'\t' '
+            NR==FNR {map[$1]=$2; next} 
+            {
+                if(map[$2]) $2=map[$2]; 
+                print $1 "\t" $2 "\t" $3
+            }
+        ' "$MAP_FILE" "$TSV_FILE" > "$TSV_FILE.tmp" && mv "$TSV_FILE.tmp" "$TSV_FILE"
+    fi
 }
 
 main() {
-  case "$1" in
-    --search)
-      shift; fetch_data; search_cmd "$1" ;;
-    --category)
-      shift; fetch_data; show_category "$1" ;;
-    --categories)
-      fetch_data; list_categories ;;
-    --all)
-      fetch_data; show_all | pager ;;
-    --help|"")
-      usage ;;
-    *)
-      echo "Unknown option: $1" >&2; usage; exit 1 ;;
-  esac
+    case "$1" in
+        --search)
+            shift; fetch_data; search_cmd "$1" ;;
+        --category)
+            shift; fetch_data; show_category "$1" ;;
+        --categories)
+            fetch_data; list_categories ;;
+        --all)
+            fetch_data; show_all | pager ;;
+        --help|"")
+            usage ;;
+        *)
+            echo "Unknown option: $1" >&2; usage; exit 1 ;;
+    esac
 }
 
 main "$@"
